@@ -18,7 +18,8 @@
     if (spent     == null) spent     = BigDecimal.ZERO;
     if (remaining == null) remaining = BigDecimal.ZERO;
 
-    Integer percentObj = (Integer) request.getAttribute("percent");
+    Number percentNum = (Number) request.getAttribute("percent");
+    Integer percentObj = (percentNum != null) ? percentNum.intValue() : 0;
     Integer monthObj   = (Integer) request.getAttribute("month");
     Integer yearObj    = (Integer) request.getAttribute("year");
 
