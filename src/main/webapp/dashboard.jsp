@@ -4,34 +4,45 @@
     if (session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp"); return;
     }
-    int userId     = (int) session.getAttribute("userId");
-    String name    = (String) session.getAttribute("userName");
-    LocalDate now  = LocalDate.now();
-    int month      = now.getMonthValue();
-    int year       = now.getYear();
+    int userId  = (int) session.getAttribute("userId");
+    String name = (String) session.getAttribute("userName");
+    LocalDate now = LocalDate.now();
+    int month = now.getMonthValue();
+    int year  = now.getYear();
 
-    BudgetDAO budgetDAO = new BudgetDAO();
-    ExpenseDAO expDAO   = new ExpenseDAO();
+    BudgetDAO budgetDAO    = new BudgetDAO();
+    ExpenseDAO expDAO      = new ExpenseDAO();
     SubscriptionDAO subDAO = new SubscriptionDAO();
 
-    BigDecimal budget    = budgetDAO.getBudget(userId, month, year);
-    BigDecimal spent     = budgetDAO.getTotalSpent(userId, month, year);
+    // Guard against null returns from DAO
+    BigDecimal budget = budgetDAO.getBudget(userId, month, year);
+    BigDecimal spent  = budgetDAO.getTotalSpent(userId, month, year);
+    if (budget == null) budget = BigDecimal.ZERO;
+    if (spent  == null) spent  = BigDecimal.ZERO;
     BigDecimal remaining = budget.subtract(spent);
+
     int subCount = subDAO.getSavedSubscriptions(userId).size();
     List<Map<String,Object>> catTotals = new ReportDAO().getCategoryTotals(userId, month, year);
     int catCount = catTotals.size();
 
-    int score = ScoreCalculator.calculate(budget, spent, catCount, subCount);
+    int score    = ScoreCalculator.calculate(budget, spent, catCount, subCount);
     String grade = ScoreCalculator.getGrade(score);
     String color = ScoreCalculator.getColor(score);
     String tip   = ScoreCalculator.getTip(score);
 
     double percent = budget.doubleValue() > 0
         ? Math.min(100, (spent.doubleValue() / budget.doubleValue()) * 100) : 0;
+
+    // Build day/month strings safely (avoid char + String int-arithmetic bug)
+    String dayName   = now.getDayOfWeek().toString();
+    dayName = Character.toUpperCase(dayName.charAt(0)) + dayName.substring(1).toLowerCase();
+    String monthName = now.getMonth().toString();
+    monthName = Character.toUpperCase(monthName.charAt(0)) + monthName.substring(1).toLowerCase();
 %>
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>SpendWise – Dashboard</title>
     <link rel="stylesheet" href="css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -43,7 +54,7 @@
 
         <div class="page-header">
             <h1>Good to see you, <%= name != null ? name.split(" ")[0] : "User" %>! 👋</h1>
-            <div class="header-date"><%= now.getDayOfWeek().toString().charAt(0) + now.getDayOfWeek().toString().substring(1).toLowerCase() %>, <%= now.getDayOfMonth() %> <%= now.getMonth().toString().charAt(0) + now.getMonth().toString().substring(1).toLowerCase() %> <%= year %></div>
+            <div class="header-date"><%= dayName %>, <%= now.getDayOfMonth() %> <%= monthName %> <%= year %></div>
         </div>
 
         <!-- Stat Cards Row -->
@@ -130,11 +141,12 @@
     const ctx = canvas.getContext('2d');
     const score = <%= score %>;
     const color = '<%= color %>';
-    const cx = 100, cy = 100, r = 70, start = Math.PI, end = 2 * Math.PI;
+    const cx = 100, cy = 100, r = 70;
+    const start = Math.PI;
     const filled = start + (score / 100) * Math.PI;
 
     ctx.beginPath();
-    ctx.arc(cx, cy, r, start, 2*Math.PI);
+    ctx.arc(cx, cy, r, start, 2 * Math.PI);
     ctx.strokeStyle = '#ECEFF1'; ctx.lineWidth = 14; ctx.lineCap = 'round';
     ctx.stroke();
 
@@ -148,9 +160,9 @@
 new Chart(document.getElementById('catChart'), {
     type: 'doughnut',
     data: {
-        labels: [<% for(int i=0;i<catTotals.size();i++){%>'<%=catTotals.get(i).get("category")%>'<%= i<catTotals.size()-1?",":"" %><% } %>],
+        labels: [<% for (int i = 0; i < catTotals.size(); i++) { %>'<%= catTotals.get(i).get("category") %>'<%= i < catTotals.size()-1 ? "," : "" %><% } %>],
         datasets: [{
-            data: [<% for(int i=0;i<catTotals.size();i++){%><%=catTotals.get(i).get("total")%><%= i<catTotals.size()-1?",":"" %><% } %>],
+            data: [<% for (int i = 0; i < catTotals.size(); i++) { %><%= catTotals.get(i).get("total") %><%= i < catTotals.size()-1 ? "," : "" %><% } %>],
             backgroundColor: ['#1ABC9C','#2C3E50','#E67E22','#9B59B6','#3498DB','#E74C3C','#2ECC71','#F39C12']
         }]
     },
