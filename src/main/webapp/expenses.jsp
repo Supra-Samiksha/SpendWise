@@ -1,6 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="com.spendwise.model.Expense, java.util.List" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%
     if (session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp"); return;
