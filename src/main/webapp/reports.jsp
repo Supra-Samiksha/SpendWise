@@ -7,8 +7,10 @@
     List<Map<String,Object>> catTotals     = (List<Map<String,Object>>) request.getAttribute("categoryTotals");
     List<Map<String,Object>> bankTotals    = (List<Map<String,Object>>) request.getAttribute("bankCategoryTotals");
     List<Map<String,Object>> trend         = (List<Map<String,Object>>) request.getAttribute("monthlyTrend");
-    int month = (int) request.getAttribute("month");
-    int year  = (int) request.getAttribute("year");
+    int month = request.getAttribute("month") != null
+        ? ((Number) request.getAttribute("month")).intValue() : 1;
+    int year  = request.getAttribute("year") != null
+        ? ((Number) request.getAttribute("year")).intValue() : 2024;
     String[] months = {"","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 %>
 <!DOCTYPE html>
