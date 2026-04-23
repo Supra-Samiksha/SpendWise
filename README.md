@@ -277,6 +277,5 @@ Inspired by [Rocket Money](https://www.rocketmoney.com/) (formerly Truebill) —
 
 ---
 
-## 👥 Team
 
-Built as a college project by [Your Team Name / Names Here].
+Built as a college project by Supra Samiksha.
